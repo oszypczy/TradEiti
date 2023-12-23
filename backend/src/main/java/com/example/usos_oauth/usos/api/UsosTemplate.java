@@ -40,6 +40,7 @@ public class UsosTemplate extends AbstractOAuth1ApiBinding {
         .queryParam("course_id", courseId)
         .queryParam("term_id", termId)
         .queryParam("fields", activitiesFields)
+              .queryParam("start", "2023-12-04")  // TODO: remove this
         .build()
         .toUri();
       Activity[] response = restTemplate.getForObject(uri, Activity[].class);
@@ -51,6 +52,7 @@ public class UsosTemplate extends AbstractOAuth1ApiBinding {
       RestTemplate restTemplate = getRestTemplate();
       URI uri = UriComponentsBuilder.fromUri(userActivitiesUrl)
         .queryParam("fields", activitiesFields)
+              .queryParam("start", "2023-12-04")  // TODO: remove this
         .build()
         .toUri();
       Activity[] response = restTemplate.getForObject(uri, Activity[].class);
