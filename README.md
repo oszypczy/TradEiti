@@ -1,33 +1,65 @@
-# TradEITI - Aplikacja do Wymiany Godzinami Zajęć dla Studentów
+# 🎓 TradEITI - Class Schedule Exchange App for Students  
 
-## Opis projektu
+## 🌟 Project Overview  
 
-TradEITI to aplikacja webowa, która ma na celu ułatwienie studentom wymiany godzinami zajęć. Problemem, z którym zetknęliśmy się podczas pierwszego roku studiów, jest brak dostępnej platformy do wymiany godzinami zajęć pomiędzy studentami. Obecnie studenci często muszą korzystać z prymitywnych rozwiązań, takich jak dokumenty typu Google Docs. Naszym celem jest stworzenie giełdy wymiany, która umożliwi studentom bardziej efektywne rozwiązywanie tego problemu.
+TradEITI is a **web application** designed to simplify the process of **class schedule exchanges** for students.  
+During our first year of university, we identified a significant problem: the lack of a dedicated platform for swapping class hours between students.  
 
-## Technologia
+🚫 **The Problem:**  
+Students often rely on rudimentary solutions like shared Google Docs, which are inefficient and time-consuming.  
 
-- Backend oparty na frameworku Spring
-- Frontend w technologii React
-- Baza danych PostgreSQL
+✅ **Our Solution:**  
+TradEITI aims to provide a **seamless and efficient platform** to empower students to manage their schedules effortlessly.  
 
-## Integracja z API USOS
+---
 
-Chcemy umożliwić studentom korzystanie z własnych danych z systemu USOS. Dzięki integracji z API USOS, każdy użytkownik będzie mógł zalogować się używając swoich istniejących danych.
+## 🛠️ Technology Stack  
 
-## Funkcje aplikacji
+| Component   | Technology       |
+|-------------|------------------|
+| **Backend** | Spring Framework |
+| **Frontend**| React            |
+| **Database**| PostgreSQL       |
 
-Aplikacja TradEITI będzie oferować następujące funkcje:
+---
 
-- Dodawanie nowych ofert wymiany godzinami zajęć.
-- Wyszukiwanie ofert na stronie głównej za pomocą różnych filtrów.
-- Zarządzanie własnymi ofertami wymiany.
-- Akceptacja ofert wymiany z innymi studentami.
+## 🔗 Integration with USOS API  
 
-## Autorzy
-- Oliwier Szypczyn
-- Artur Kempiński
-- Kacper Multan
-- Jakub Kryczka
+To enhance usability, TradEITI integrates with the **USOS API**, allowing students to securely log in using their existing credentials.  
+✨ **Benefits:**  
+- Personalized access  
+- Secure authentication  
+- Streamlined user experience  
 
-## Licencja
-Ten projekt jest dostępny na zamkniętej licencji. Wszelkie prawa autorskie zastrzeżone.
+---
+
+## ✨ Key Features  
+
+TradEITI will offer a range of features to make schedule exchanges easy and efficient:  
+
+- 📝 **Create Offers:** Post new class schedule exchange offers.  
+- 🔍 **Search Functionality:** Browse and filter offers with dynamic search options.  
+- 📋 **Offer Management:** Manage, edit, or delete your posted offers.  
+- 🤝 **Exchange Agreements:** Accept and finalize exchanges with fellow students directly through the platform.  
+
+---
+
+## 👥 Meet the Team  
+
+We are a group of passionate developers dedicated to solving student-centric problems:  
+
+- **Oliwier Szypczyn**  
+- **Artur Kempiński**  
+- **Kacper Multan**  
+- **Jakub Kryczka**  
+
+---
+
+## 📜 License  
+
+This project is distributed under a **proprietary license**.  
+💡 All rights reserved.  
+
+---
+
+🌟 **We’re excited to bring TradEITI to life and revolutionize how students manage their schedules!**  
