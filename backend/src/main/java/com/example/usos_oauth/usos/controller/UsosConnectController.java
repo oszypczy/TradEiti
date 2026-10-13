@@ -34,9 +34,10 @@ public class UsosConnectController {
 
     @Hidden
     @GetMapping("/authorize-token")
-    public RedirectView getAccessToken(@RequestParam("oauth_verifier") String oauthVerifier,
+    public RedirectView getAccessToken(@RequestParam("oauth_token") String oauthToken,
+                                       @RequestParam("oauth_verifier") String oauthVerifier,
                                        @RequestParam("user_id") Long userId) {
-        usosConnectService.verifyUserToken(oauthVerifier, userId);
+        usosConnectService.verifyUserToken(oauthToken, oauthVerifier, userId);
         return new RedirectView(frontendUrl, true, true);
     }
 
@@ -46,7 +47,7 @@ public class UsosConnectController {
         if (usos.isUserConnected()) {
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.PROXY_AUTHENTICATION_REQUIRED);
+            return new ResponseEntity<>(HttpStatus.PRECONDITION_REQUIRED);
         }
     }
 }

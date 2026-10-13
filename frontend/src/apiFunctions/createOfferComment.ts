@@ -1,6 +1,6 @@
 import { axiosBase } from "../config/axiosConfig";
-import { Comment } from "../models/Comment";
+import { NewComment } from "../models/Comment";
 
-export function createOfferComment(comment: Comment) {
+export function createOfferComment(comment: NewComment) {
   return axiosBase.post("/comments/create", comment);
 }

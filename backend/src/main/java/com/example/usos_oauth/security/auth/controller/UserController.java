@@ -7,6 +7,7 @@ import com.example.usos_oauth.security.auth.model.UsernameRequest;
 import com.example.usos_oauth.security.auth.service.AuthenticationService;
 import com.example.usos_oauth.security.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class UserController {
      * @return ResponseEntity containing an AuthenticationResponse indicating the success of the operation.
      */
     @PostMapping("/change-username")
-    public ResponseEntity<AuthenticationResponse> changeUsername(@RequestBody UsernameRequest usernameRequest) {
+    public ResponseEntity<AuthenticationResponse> changeUsername(@Valid @RequestBody UsernameRequest usernameRequest) {
         String newUsername = usernameRequest.getUsername();
         return ResponseEntity.ok(authenticationService.changeUsername(newUsername));
     }

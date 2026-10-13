@@ -1,0 +1,71 @@
+.profile {
+  max-width: 640px;
+
+  &-card {
+    padding: 28px;
+    flex-direction: row;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-radius: 20px;
+
+    > img {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eef1f8;
+    }
+
+    .who {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .name {
+        font: 800 26px/1.1 var(--font-display);
+        overflow-wrap: anywhere;
+      }
+    }
+  }
+
+  &-form {
+    padding: 28px;
+    gap: 22px;
+    border-radius: 20px;
+  }
+
+  .avatars {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    button {
+      padding: 6px;
+      border-radius: 50%;
+      border: 2.5px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+
+      &[aria-checked="true"] {
+        border-color: var(--blue);
+      }
+    }
+    img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      background: #eef1f8;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+}

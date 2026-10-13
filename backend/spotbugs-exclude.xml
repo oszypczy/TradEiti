@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- RestClient is immutable and thread-safe; storing a shared instance is intended -->
+    <Match>
+        <Class name="com.example.usos_oauth.usos.oauth.HttpUsosOAuthClient"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

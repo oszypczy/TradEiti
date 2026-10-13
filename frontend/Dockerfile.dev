@@ -1,12 +1,11 @@
-FROM node:16 as development
+FROM node:24-alpine AS development
 
 WORKDIR /app
 
-COPY package.json .
-COPY package-lock.json .
-
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 
-CMD ["npm", "run", "dev"]
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]

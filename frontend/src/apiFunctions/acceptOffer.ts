@@ -3,8 +3,10 @@ import { OfferStatus } from "../models/enums/OfferStatus";
 
 // Changes status of offer to accepted
 // Returns a promise that resolves to the response data
-export function acceptOffer(offer_id: string, state: OfferStatus) {
+export function acceptOffer(offer_id: number, state: OfferStatus) {
   if (state !== OfferStatus.REQUEST_SENT)
-    throw new Error("Offer is not in the correct state to be accepted");
+    return Promise.reject(
+      new Error("Offer is not in the correct state to be accepted")
+    );
   return axiosBase.patch(`/offers/accept/${offer_id}`);
 }

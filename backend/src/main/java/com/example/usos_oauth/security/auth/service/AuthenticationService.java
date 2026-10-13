@@ -2,6 +2,7 @@ package com.example.usos_oauth.security.auth.service;
 
 import com.example.usos_oauth.security.auth.model.AuthenticationRequest;
 import com.example.usos_oauth.security.auth.model.AuthenticationResponse;
+import com.example.usos_oauth.security.model.Avatar;
 import com.example.usos_oauth.security.model.Role;
 import com.example.usos_oauth.security.model.User;
 import com.example.usos_oauth.security.model.UsosAuth;
@@ -13,7 +14,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Service class responsible for authentication-related operations such as registration, login, and username changes.
@@ -21,6 +27,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
+    /** BCrypt only supports passwords up to 72 bytes. */
+    private static final int MAX_PASSWORD_BYTES = 72;
 
     /**
      * Repository for managing User entities.
@@ -53,8 +62,12 @@ public class AuthenticationService {
      * @param registerRequest The request object containing registration information.
      * @return AuthenticationResponse containing the JWT token for the registered user.
      */
+    @Transactional
     public AuthenticationResponse register(AuthenticationRequest registerRequest) {
-        String username = registerRequest.getUsername();
+        String username = registerRequest.getUsername().trim();
+        if (registerRequest.getPassword().getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is too long");
+        }
         if (userRepository.findByUsername(username).isPresent()) {
             throw new UserAlreadyExistsException();
         }
@@ -66,7 +79,7 @@ public class AuthenticationService {
                         .oauthKey("none")
                         .oauthSecret("none")
                         .build())
-                .avatar("helicopter")
+                .avatar(Avatar.HELICOPTER.getAvatar())
                 .build();
         userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
@@ -82,13 +95,14 @@ public class AuthenticationService {
      * @return AuthenticationResponse containing the JWT token for the authenticated user.
      */
     public AuthenticationResponse login(AuthenticationRequest loginRequest) {
+        String username = loginRequest.getUsername().trim();
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
+                        username,
                         loginRequest.getPassword()
                 )
         );
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         String jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
@@ -102,13 +116,15 @@ public class AuthenticationService {
      * @param newUsername The new username to be set for the user.
      * @return AuthenticationResponse containing the JWT token for the user with the new username.
      */
+    @Transactional
     public AuthenticationResponse changeUsername(String newUsername) {
-        if (userService.isUsernameTaken(newUsername)) {
+        String username = newUsername.trim();
+        if (userService.isUsernameTaken(username)) {
             throw new UserAlreadyExistsException();
         }
         User user = userService.getCurrentUser();
-        userService.updateUserUsername(user.getId(), newUsername);
-        String jwtToken = jwtService.generateToken(userRepository.findByUsername(newUsername).get());
+        userService.updateUserUsername(user.getId(), username);
+        String jwtToken = jwtService.generateToken(userService.loadUserById(user.getId()));
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();

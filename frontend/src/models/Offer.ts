@@ -2,7 +2,7 @@ import { CourseDto } from "./Course";
 import { OfferStatus } from "./enums/OfferStatus";
 
 export interface OfferDto {
-  offer_id: string;
+  offer_id: number;
   owner_username: string;
   receiver_username: string;
   state: OfferStatus;

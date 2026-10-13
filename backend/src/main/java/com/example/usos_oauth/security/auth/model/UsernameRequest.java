@@ -1,5 +1,7 @@
 package com.example.usos_oauth.security.auth.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +18,7 @@ public class UsernameRequest {
     /**
      * The new username to be set.
      */
+    @NotBlank
+    @Size(max = 64)
     private String username;
 }

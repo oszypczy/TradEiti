@@ -1,16 +1,23 @@
 import axios from "axios";
-import { JWT_TOKEN } from "./constants";
+import { getToken } from "../auth/JwtToken";
 
-export let apiBaseUrl = "https://www.tradeiti.com/api";
-
-// if (process.env.NODE_ENV === "development") {
-//   apiBaseUrl = "http://localhost:8090/api";
-// }
+export const apiBaseUrl: string = import.meta.env.VITE_API_URL ?? "/api";
 
 export const axiosBase = axios.create({
   baseURL: apiBaseUrl,
   headers: {
-    Authorization: "Bearer " + localStorage.getItem(JWT_TOKEN),
     "Content-Type": "application/json",
   },
+});
+
+// Read the token on every request so a fresh login/logout takes effect
+// without reloading the page.
+axiosBase.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    delete config.headers.Authorization;
+  }
+  return config;
 });

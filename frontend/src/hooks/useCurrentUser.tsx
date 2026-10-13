@@ -1,80 +1,83 @@
-import { useEffect, useState } from "react";
-import { getCurrentUser } from "../apiFunctions/getCurrentUser";
-import { removeJwtToken } from "../auth/JwtToken";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getToken, removeJwtToken } from "../auth/JwtToken";
 import { checkIfConnectedToUsos } from "../apiFunctions/checkIfConnectedToUsos";
 import { getUserData } from "../apiFunctions/getUserData";
 import { UserData } from "../models/UserData";
 
-
 // Hook for fetching current user data and checking if user is authenticated
-// and connected to USOS
+// and connected to USOS. Call `refresh` after the stored token changes
+// (login, register, username change, logout).
 export function useCurrentUser() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [authenticated, setAuthenticated] = useState<boolean | undefined>(
+  const queryClient = useQueryClient();
+  const [currentUser, setCurrentUser] = useState<UserData | undefined>(
     undefined
   );
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [authenticated, setAuthenticated] = useState<boolean | undefined>(
+    () => (getToken() ? undefined : false)
+  );
   const [connectedToUsos, setConnectedToUsos] = useState<boolean | undefined>(
     undefined
   );
+  const [loading, setLoading] = useState(() => getToken() !== null);
+  const [version, setVersion] = useState(0);
 
-  useEffect(() => {
-    setMounted(true);
-    const jwtToken = localStorage.getItem("jwtToken");
-    if (!jwtToken) {
-      navigate("/login?redirected=true");
+  const refresh = useCallback(() => {
+    queryClient.clear();
+    if (getToken()) {
+      setLoading(true);
+      setVersion((v) => v + 1);
+    } else {
+      setCurrentUser(undefined);
+      setAuthenticated(false);
+      setConnectedToUsos(undefined);
+      setLoading(false);
     }
+  }, [queryClient]);
 
-    getCurrentUser()
-      .then(() => {
-        // setCurrentUser(userData);
-        setAuthenticated(true);
-      })
-      .catch((err) => {
-        console.log(err);
-        removeJwtToken();
-        setAuthenticated(false);
-        navigate("/login?redirected=true");
-      });
-  }, []);
+  const logout = useCallback(() => {
+    removeJwtToken();
+    refresh();
+  }, [refresh]);
 
   useEffect(() => {
-    if (!authenticated || connectedToUsos) return;
-    checkIfConnectedToUsos()
-      .then(() => {
-        setConnectedToUsos(true);
+    let cancelled = false;
+
+    if (!getToken()) return;
+
+    getUserData()
+      .then(async (userData) => {
+        if (cancelled) return;
+        setCurrentUser(userData);
+        setAuthenticated(true);
+        const connected = await checkIfConnectedToUsos().then(
+          () => true,
+          () => false
+        );
+        if (cancelled) return;
+        setConnectedToUsos(connected);
         setLoading(false);
       })
-      .catch((err) => {
-        console.log(err);
-        setConnectedToUsos(false);
+      .catch(() => {
+        if (cancelled) return;
+        removeJwtToken();
+        setCurrentUser(undefined);
+        setAuthenticated(false);
+        setConnectedToUsos(undefined);
+        setLoading(false);
       });
-  }, [authenticated, connectedToUsos]);
 
-  useEffect(() => {
-    if (!connectedToUsos) return;
-    getUserData().then((userData: UserData) => {
-      const user: UserData = {
-        username: localStorage.getItem("username")!,
-        avatar: userData.avatar,
-      };
-      setCurrentUser(user);
-      setLoading(false);
-    });
-  }, [connectedToUsos]);
+    return () => {
+      cancelled = true;
+    };
+  }, [version]);
 
   return {
-    mounted,
     currentUser,
     authenticated,
     loading,
-    setAuthenticated,
-    setCurrentUser,
     connectedToUsos,
-    setConnectedToUsos,
-    setLoading,
+    refresh,
+    logout,
   };
 }

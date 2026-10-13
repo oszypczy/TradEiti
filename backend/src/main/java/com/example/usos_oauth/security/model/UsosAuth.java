@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 /**
  * Entity class representing user authentication information for USOS (University's Single Sign-On) integration.
  */
@@ -15,7 +18,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "usos_auth")
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsosAuth {
+public class UsosAuth implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
 
     /**
      * Primary key identifier for the USOS authentication entity.

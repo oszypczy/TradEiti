@@ -1,0 +1,44 @@
+.auth-panel {
+  max-width: 420px;
+
+  &.wide {
+    max-width: 520px;
+    padding: 40px;
+    align-items: center;
+    text-align: center;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  h1 {
+    font: 800 30px/1.1 var(--font-display);
+  }
+
+  header p {
+    font: 500 14px/1.5 var(--font-body);
+    color: var(--muted);
+  }
+
+  .switch {
+    font: 500 14px var(--font-body);
+    color: var(--muted);
+    text-align: center;
+
+    .link {
+      font-size: 14px;
+    }
+  }
+
+  .connecting {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 700 14px var(--font-body);
+    color: var(--blue);
+  }
+}

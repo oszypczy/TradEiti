@@ -1,0 +1,11 @@
+# Overrides for tests; the datasource is replaced by an embedded H2 database
+usos:
+  mock: true
+
+jwt:
+  key: dGVzdC1rZXktdGhhdC1pcy1sb25nLWVub3VnaC1mb3ItaHMyNTYtc2lnbmF0dXJlcw==
+
+app:
+  url:
+    backend: http://localhost:8090
+    frontend: http://localhost:5173

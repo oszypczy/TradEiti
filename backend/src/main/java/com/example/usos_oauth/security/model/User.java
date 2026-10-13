@@ -32,6 +32,7 @@ public class User implements UserDetails {
     /**
      * Username of the user.
      */
+    @Column(unique = true, nullable = false)
     private String username;
     /**
      * Password of the user.
@@ -53,7 +54,7 @@ public class User implements UserDetails {
     /**
      * One-to-one relationship with the UsosAuth entity, representing USOS authentication information.
      */
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private UsosAuth usos_auth;
     /**
      * Avatar associated with the user.

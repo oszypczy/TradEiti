@@ -8,13 +8,18 @@ import com.example.usos_oauth.security.model.User;
 import com.example.usos_oauth.usos.model.dto.CourseDTO;
 import com.example.usos_oauth.usos.model.dto.GroupDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class OfferDTOMapper {
+public final class OfferDTOMapper {
+
+    private OfferDTOMapper() {}
+
     public static Course mapToCourse(CourseDTO courseDTO) {
         Course course = new Course();
-        GroupDTO groupDTO = courseDTO.getGroups().get(0);
+        GroupDTO groupDTO = courseDTO.getGroups().getFirst();
         course.setUsosCourseId(courseDTO.getCourseId());
         course.setName(courseDTO.getCourseName());
         course.setGroupNumber(groupDTO.getGroupNumber());
@@ -22,13 +27,13 @@ public class OfferDTOMapper {
         course.setStartHour(groupDTO.getStartTime());
         course.setEndHour(groupDTO.getEndTime());
         course.setClassTypeName(groupDTO.getClassTypeName());
-        course.setLecturers(groupDTO.getLecturers().stream()
+        course.setLecturers(Optional.ofNullable(groupDTO.getLecturers()).orElse(List.of()).stream()
                 .map(lecturerName -> {
                     Lecturer lecturer = new Lecturer();
                     lecturer.setLecturerName(lecturerName);
                     return lecturer;
                 })
-                .toList());
+                .collect(Collectors.toCollection(ArrayList::new)));
         return course;
     }
 
