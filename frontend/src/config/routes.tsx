@@ -1,33 +1,32 @@
-import { PrivateFinalizedOffers } from "../pages/finalizedOffers/FinalizedOffers";
-import { Home } from "../pages/home/Home";
-import { Login } from "../pages/login/Login";
-import { PrivateMyOffers } from "../pages/myOffers/MyOffers";
-import { PrivateNews } from "../pages/news/News";
-import { PrivateOfferRequests } from "../pages/offerRequests/OfferRequests";
-import { PrivateOffers } from "../pages/offers/Offers";
-import { Register } from "../pages/register/Register";
-import { UsosConnect } from "../pages/usosConnect/UsosConnect";
-import { PrivateUserPage } from "../pages/userPage/UserPage";
-import { PrivateModifyUser } from "../pages/modifyUser/ModifyUser";
-import { PrivateCourses } from "../pages/courses/Courses";
-import { PrivateFittingOffers } from "../pages/offers/FittingOffers";
+import { Navigate } from "react-router-dom";
+import { Home } from "../pages/Home";
+import { Login } from "../pages/Login";
+import { Register } from "../pages/Register";
+import { UsosConnect } from "../pages/UsosConnect";
+import { Market } from "../pages/Market";
+import { MyOffers } from "../pages/MyOffers";
+import { AddOffer } from "../pages/AddOffer";
+import { Requests } from "../pages/Requests";
+import { Finalized } from "../pages/Finalized";
+import { Chat } from "../pages/Chat";
+import { Courses } from "../pages/Courses";
+import { Profile } from "../pages/Profile";
+import { EditProfile } from "../pages/EditProfile";
 
 export const routes = [
-  { path: "/register", element: <Register /> },
-  { path: "/login", element: <Login /> },
-  { path: "/usos-connect", element: <UsosConnect /> },
-];
-
-export const privateRoutes = [
-  { path: "/offers", element: <PrivateOffers /> },
-  { path: "/fittingOffers", element: <PrivateFittingOffers /> },
-  { path: "/myOffers", element: <PrivateMyOffers /> },
-  { path: "/news", element: <PrivateNews /> },
-  { path: "/finalizedOffers", element: <PrivateFinalizedOffers /> },
-  { path: "/courses", element: <PrivateCourses /> },
-  { path: "/offerRequests", element: <PrivateOfferRequests /> },
-  { path: "/userPage", element: <PrivateUserPage /> },
-  { path: "/modifyUser", element: <PrivateModifyUser /> },
   { path: "/", element: <Home /> },
-  { path: "*", element: <Home /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/usos-connect", element: <UsosConnect /> },
+  { path: "/offers", element: <Market /> },
+  { path: "/fittingOffers", element: <Navigate to="/offers?tab=fit" replace /> },
+  { path: "/myOffers", element: <MyOffers /> },
+  { path: "/myOffers/new", element: <AddOffer /> },
+  { path: "/offerRequests", element: <Requests /> },
+  { path: "/finalizedOffers", element: <Finalized /> },
+  { path: "/finalizedOffers/:offerId", element: <Chat /> },
+  { path: "/courses", element: <Courses /> },
+  { path: "/userPage", element: <Profile /> },
+  { path: "/modifyUser", element: <EditProfile /> },
+  { path: "*", element: <Navigate to="/" replace /> },
 ];

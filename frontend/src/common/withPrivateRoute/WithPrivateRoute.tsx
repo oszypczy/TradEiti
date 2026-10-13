@@ -1,6 +1,7 @@
 import { ComponentType, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../providers/authContext";
+import { Loading } from "../../components/ui/Loading";
 
 const login = "/login?redirected=true";
 const usosConnect = "/usos-connect";
@@ -24,7 +25,7 @@ export function withPrivateRoute<P extends object>(
     }, [authenticated, loading, connectedToUsos, navigate]);
 
     if (loading || !authenticated || !connectedToUsos) {
-      return <div>Loading...</div>;
+      return <Loading />;
     }
     return <WrappedComponent {...props} />;
   };

@@ -24,8 +24,13 @@ export function toUserPerspective(
   );
 }
 
-// Hook for fetching finalized offers and offer requests
-// Returns finalized offers
+// The other participant of an exchange.
+export function partnerOf(offer: OfferDto, username: string | undefined): string {
+  return offer.owner_username === username ? offer.receiver_username : offer.owner_username;
+}
+
+// Completed exchanges of the current user, from their perspective
+// (my_course = the group they left, wanted_course = the group they got).
 export function useFetchFinalizedOffers() {
   const { currentUser } = useAuthContext();
   const { data } = useQuery({

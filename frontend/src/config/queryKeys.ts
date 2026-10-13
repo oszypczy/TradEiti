@@ -11,5 +11,5 @@ export const queryKeys = {
   presentOffers: (state: OfferStatus) => ["offers", "present", state] as const,
   courses: ["courses"] as const,
   courseGroups: (courseId: string) => ["courseGroups", courseId] as const,
-  comments: (offerId: string) => ["comments", offerId] as const,
+  comments: (offerId: number) => ["comments", offerId] as const,
 };

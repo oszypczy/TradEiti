@@ -1,0 +1,173 @@
+.exchange-card {
+  padding: 22px;
+  gap: 18px;
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .groups {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+
+    > div {
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .old {
+      background: var(--surface-3);
+
+      .time {
+        color: var(--muted);
+        text-decoration: line-through;
+      }
+    }
+    .new {
+      background: var(--green-soft);
+
+      .eyebrow {
+        color: var(--green-ink);
+      }
+    }
+    .time {
+      font: 700 14px var(--font-mono);
+    }
+    .detail {
+      font: 500 12px var(--font-body);
+      color: var(--ink-2);
+    }
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font: 600 13px var(--font-body);
+    color: var(--muted);
+  }
+}
+
+.chat-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: 20px;
+  align-items: start;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &-messages {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 280px;
+    max-height: 440px;
+    overflow: auto;
+    background: var(--surface-2);
+
+    .none {
+      margin: auto;
+      font: 600 14px var(--font-body);
+      color: var(--muted);
+    }
+  }
+
+  .msg {
+    max-width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .author {
+      font: 700 11px var(--font-body);
+      color: var(--muted);
+    }
+    .bubble {
+      border-radius: 14px 14px 14px 4px;
+      padding: 10px 14px;
+      font: 500 14px/1.5 var(--font-body);
+      background: #fff;
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    &.mine {
+      align-self: flex-end;
+      align-items: flex-end;
+
+      .bubble {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+        border-radius: 14px 14px 4px 14px;
+      }
+    }
+  }
+
+  &-compose {
+    border-top: 1px solid var(--line);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .counter {
+      font: 600 12px var(--font-mono);
+      color: var(--muted);
+
+      &.over {
+        color: var(--red);
+      }
+    }
+  }
+}
+
+.chat-info {
+  padding: 20px;
+  gap: 12px;
+
+  .old {
+    font: 700 13px var(--font-mono);
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .new {
+    font: 700 15px var(--font-mono);
+    color: var(--green-ink);
+  }
+  .lecturers {
+    font: 500 13px/1.5 var(--font-body);
+    color: var(--ink-2);
+  }
+  .note {
+    font: 500 12px/1.5 var(--font-body);
+    color: var(--muted);
+  }
+}

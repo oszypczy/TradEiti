@@ -29,7 +29,7 @@ export function offer(
 ): OfferDto {
   const { my, wanted, ...rest } = overrides;
   return {
-    offer_id: "1",
+    offer_id: 1,
     owner_username: "alice",
     receiver_username: "",
     state: OfferStatus.PENDING,
