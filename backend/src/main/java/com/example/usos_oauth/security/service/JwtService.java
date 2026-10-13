@@ -1,5 +1,6 @@
 package com.example.usos_oauth.security.service;
 
+import com.example.usos_oauth.security.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -18,6 +19,8 @@ import java.util.function.Function;
 public final class JwtService {
 
     static final Duration TOKEN_VALIDITY = Duration.ofHours(10);
+    /** Usernames can change, so tokens also carry the immutable user id. */
+    static final String USER_ID_CLAIM = "uid";
 
     private final SecretKey signingKey;
 
@@ -38,7 +41,14 @@ public final class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        if (userDetails instanceof User user && user.getId() != null) {
+            return generateToken(Map.of(USER_ID_CLAIM, user.getId()), userDetails);
+        }
         return generateToken(Map.of(), userDetails);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get(USER_ID_CLAIM, Long.class));
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {

@@ -1,5 +1,6 @@
 package com.example.usos_oauth.security.config;
 
+import com.example.usos_oauth.security.model.User;
 import com.example.usos_oauth.security.service.JwtService;
 import com.example.usos_oauth.security.service.UserService;
 import io.jsonwebtoken.JwtException;
@@ -12,13 +13,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -53,10 +54,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username == null) {
                 return;
             }
-            UserDetails userDetails = userService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(token, userDetails)) {
+            User user = userService.loadUserByUsername(username);
+            // The username may have been taken over by another account after a rename
+            if (jwtService.isTokenValid(token, user) && Objects.equals(jwtService.extractUserId(token), user.getId())) {
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }

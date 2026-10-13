@@ -39,4 +39,9 @@ public class UsosAuth implements Serializable {
      * OAuth secret associated with the USOS authentication.
      */
     private String oauthSecret;
+    /**
+     * SHA-256 of the secret given to the browser that started the USOS authorization (as a cookie);
+     * the public callback is only accepted from that browser.
+     */
+    private String oauthStateHash;
 }

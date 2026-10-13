@@ -92,6 +92,14 @@ public class UserService implements UserDetailsService {
     }
 
     /**
+     * Hash of the pending USOS authorization state of a user, or {@code null}.
+     */
+    public String getOauthStateHash(Long userId) {
+        UsosAuth usosAuth = loadUserById(userId).getUsos_auth();
+        return usosAuth == null ? null : usosAuth.getOauthStateHash();
+    }
+
+    /**
      * Updates the OAuthToken for a specific user.
      *
      * @param userId The unique identifier of the user.
@@ -99,6 +107,14 @@ public class UserService implements UserDetailsService {
      */
     @Transactional
     public void updateUserToken(Long userId, OAuthToken token) {
+        updateUserToken(userId, token, null);
+    }
+
+    /**
+     * Stores a USOS token together with the hash of the authorization state (or {@code null} to clear it).
+     */
+    @Transactional
+    public void updateUserToken(Long userId, OAuthToken token, String oauthStateHash) {
         User user = userRepository.getReferenceById(userId);
         UsosAuth usosAuth = user.getUsos_auth();
         if (usosAuth == null) {
@@ -107,6 +123,7 @@ public class UserService implements UserDetailsService {
         }
         usosAuth.setOauthKey(token.value());
         usosAuth.setOauthSecret(token.secret());
+        usosAuth.setOauthStateHash(oauthStateHash);
         userRepository.save(user);
     }
 

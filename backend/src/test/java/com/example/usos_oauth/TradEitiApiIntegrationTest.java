@@ -1,17 +1,20 @@
 package com.example.usos_oauth;
 
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +124,37 @@ class TradEitiApiIntegrationTest {
         call(get("/api/user/get-user-info"), newToken).andExpect(jsonPath("$.username").value(newName));
         // the old token refers to a username that no longer exists: 403, not 500
         call(get("/api/user/get-user-info"), oldToken).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tokenIssuedBeforeRenameCannotAccessAccountThatTakesOverTheOldName() throws Exception {
+        String oldName = "renamed-" + suffix();
+        String oldToken = register(oldName);
+        call(post("/api/user/change-username").content("{\"username\": \"" + oldName + "-new\"}"), oldToken)
+                .andExpect(status().isOk());
+        register(oldName); // someone else registers the freed name
+
+        call(get("/api/user/get-user-info"), oldToken).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void usosCallbackIsOnlyAcceptedFromTheBrowserThatStartedTheAuthorization() throws Exception {
+        String attacker = register("attacker-" + suffix());
+        MvcResult start = call(get("/api/usos/connect"), attacker).andExpect(status().isOk()).andReturn();
+        // the fake USOS "authorizes" by sending the browser straight back to our callback
+        URI callback = URI.create(start.getResponse().getContentAsString());
+        Cookie state = start.getResponse().getCookie("usos_oauth_state");
+        assertThat(state).isNotNull();
+        assertThat(state.isHttpOnly()).isTrue();
+
+        // a victim lured to the authorization link does not have the attacker's state cookie
+        mvc.perform(get(callback.getPath() + "?" + callback.getRawQuery())).andExpect(status().isForbidden());
+        mvc.perform(get(callback.getPath() + "?" + callback.getRawQuery()).cookie(new Cookie("usos_oauth_state", "guess")))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(get(callback.getPath() + "?" + callback.getRawQuery()).cookie(state))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(result -> assertThat(result.getResponse().getCookie("usos_oauth_state").getMaxAge()).isZero());
     }
 
     @Test
