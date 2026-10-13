@@ -1,21 +1,26 @@
 import { useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useFormContext } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { CoursesList } from "../../components/coursesList/CoursesList";
 import { MyOffersSteps } from "./MyOffersSteps";
 import { CourseDto } from "../../models/Course";
-import { useSearchParams } from "react-router-dom";
-import { useFormContext } from "react-hook-form";
-import { useQuery } from "react-query";
 import { getAllCourses } from "../../apiFunctions/getAllCourses";
 import {
   removeMultipleValuesFromSessionStorage,
   saveInSessionStorage,
 } from "../../common/sessionStorage";
 import { GroupDto } from "../../models/GroupDto";
+import { FormOffer } from "../../models/form/FormOffer";
+import { queryKeys } from "../../config/queryKeys";
 
 export function ChooseCourse() {
-  const { data: courses } = useQuery("courses", getAllCourses);
-  const { setValue, reset } = useFormContext();
-  const [_, setSearchParams] = useSearchParams();
+  const { data: courses } = useQuery({
+    queryKey: queryKeys.courses,
+    queryFn: getAllCourses,
+  });
+  const { reset } = useFormContext<FormOffer>();
+  const [, setSearchParams] = useSearchParams();
 
   const handleBack = useCallback(() => {
     setSearchParams({});
@@ -24,17 +29,15 @@ export function ChooseCourse() {
   const handleOnCourseClick = useCallback(
     (course: CourseDto, choosenGroup: GroupDto) => {
       reset({
-        course: "",
-        group: "",
+        course: {
+          course_id: course.course_id,
+          course_name: course.course_name,
+        },
+        group: choosenGroup,
         myHour: "",
         opponentHour: "",
       });
       removeMultipleValuesFromSessionStorage(["myHour", "opponentHour"]);
-      setValue("course", {
-        course_id: course.course_id,
-        course_name: course.course_name,
-      });
-      setValue("group", choosenGroup);
       saveInSessionStorage("course", JSON.stringify(course));
       saveInSessionStorage("group", JSON.stringify(choosenGroup));
       setSearchParams({
@@ -44,7 +47,7 @@ export function ChooseCourse() {
         stage: "2",
       });
     },
-    [setSearchParams, setValue, reset]
+    [setSearchParams, reset]
   );
   return (
     <>

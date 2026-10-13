@@ -2,15 +2,18 @@ package com.example.usos_oauth.security.config;
 
 import com.example.usos_oauth.security.service.JwtService;
 import com.example.usos_oauth.security.service.UserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,6 +24,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final JwtService jwtService;
     private final UserService userService;
 
@@ -30,35 +35,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader("Authorization");
-        final String token;
-        final String username;
-        if (authorizationHeader == null || authorizationHeader.startsWith("Bearer null")) {
-            filterChain.doFilter(request, response);
-            return;
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+            authenticate(request, authorizationHeader.substring(BEARER_PREFIX.length()).trim());
         }
-        token = authorizationHeader.substring(7);
+        filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Invalid, expired or stale tokens (e.g. issued before a username change) simply leave the request
+     * unauthenticated, so protected endpoints answer 403 instead of 500.
+     */
+    private void authenticate(HttpServletRequest request, String token) {
         try {
-            username = jwtService.extractUsername(token);
-        } catch (Exception e) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String username = jwtService.extractUsername(token);
+            if (username == null) {
+                return;
+            }
             UserDetails userDetails = userService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authenticationToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
+            logger.debug("Ignoring invalid JWT: " + e.getMessage());
         }
-        filterChain.doFilter(request, response);
     }
 }

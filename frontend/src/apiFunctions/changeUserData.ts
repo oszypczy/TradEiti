@@ -1,21 +1,16 @@
 import { axiosBase } from "../config/axiosConfig";
-import { UserData } from "../models/UserData";
 
-// Request to backend endpoint which changes both username and avatar
-export function changeUserData(userData: UserData){
-    return axiosBase.put("/user/change-data", userData);
-}
-
-// Request to backend endpoint which changes username
-export async function changeUserLogin(userLogin: string){
-    const response = await axiosBase.post("/user/change-username", userLogin);
-    console.log(response.data);
-    return response.data;
+// Request to backend endpoint which changes username; returns a new JWT
+export async function changeUserLogin(username: string) {
+  const response = await axiosBase.post<{ token: string }>(
+    "/user/change-username",
+    { username }
+  );
+  return response.data;
 }
 
 // Request to backend endpoint which changes avatar
-export async function changeUserAvatar(userAvatar: string){
-    const response = await axiosBase.post("/user/change-avatar", userAvatar);
-    console.log(response.data);
-    return response.data;
+export async function changeUserAvatar(avatar: string) {
+  const response = await axiosBase.post("/user/change-avatar", { avatar });
+  return response.data;
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./NavBar.scss";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
 const titleAndNavigation = [
   {
@@ -9,18 +9,18 @@ const titleAndNavigation = [
   },
   {
     title: "OFERTY",
-    navigation: "offers",
+    navigation: "/offers",
   },
   {
     title: "MOJE OFERTY",
-    navigation: "myOffers",
+    navigation: "/myOffers",
   },
   {
     title: "WYSŁANE OFERTY",
-    navigation: "offerRequests",
+    navigation: "/offerRequests",
   },
-  { title: "ZAKOŃCZONE WYMIANY", navigation: "finalizedOffers" },
-  { title: "KURSY", navigation: "courses" },
+  { title: "ZAKOŃCZONE WYMIANY", navigation: "/finalizedOffers" },
+  { title: "KURSY", navigation: "/courses" },
 ];
 
 const authenticatedLabels = [
@@ -30,7 +30,7 @@ const authenticatedLabels = [
   },
   {
     title: "Połącz z USOS",
-    navigation: "usos-connect",
+    navigation: "/usos-connect",
   },
 ];
 
@@ -41,11 +41,11 @@ const notAuthenticatedLabels = [
   },
   {
     title: "LOGIN",
-    navigation: "login",
+    navigation: "/login",
   },
   {
     title: "REGISTER",
-    navigation: "register",
+    navigation: "/register",
   },
 ];
 
@@ -58,7 +58,6 @@ export const NavBar = () => {
       ? titleAndNavigation
       : authenticatedLabels
     : notAuthenticatedLabels;
-  // const labels = titleAndNavigation;
   return (
     <nav className="navBar">
       {labels.map((item, index) => (

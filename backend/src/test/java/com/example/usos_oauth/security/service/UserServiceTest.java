@@ -4,6 +4,7 @@ import com.example.usos_oauth.security.model.Role;
 import com.example.usos_oauth.security.model.User;
 import com.example.usos_oauth.security.model.UsosAuth;
 import com.example.usos_oauth.security.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.social.oauth1.OAuthToken;
+import com.example.usos_oauth.usos.oauth.OAuthToken;
 
 import java.util.Optional;
 
@@ -24,8 +25,6 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
     @Mock
-    private JwtService jwtService;
-    @Mock
     private UserRepository userRepository;
     private User mockUser;
     private SecurityContext securityContext;
@@ -33,7 +32,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, jwtService);
+        userService = new UserService(userRepository);
         mockUser = new User();
         mockUser.setId(10L);
         mockUser.setUsername("mockUser");
@@ -44,6 +43,27 @@ class UserServiceTest {
         mockUser.getUsos_auth().setOauthSecret("mockSecret");
         securityContext = Mockito.mock(SecurityContext.class);
         authentication = Mockito.mock(Authentication.class);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void updateUserToken_existingUsosAuthIsUpdatedInPlace() {
+        User user = new User();
+        user.setId(1L);
+        UsosAuth existing = new UsosAuth();
+        existing.setUsosId(5L);
+        user.setUsos_auth(existing);
+        Mockito.when(userRepository.getReferenceById(1L)).thenReturn(user);
+
+        userService.updateUserToken(1L, new OAuthToken("k", "s"));
+
+        Assertions.assertSame(existing, user.getUsos_auth());
+        Assertions.assertEquals("k", existing.getOauthKey());
+        Assertions.assertEquals("s", existing.getOauthSecret());
     }
 
     @Test
@@ -124,8 +144,8 @@ class UserServiceTest {
         OAuthToken oAuthToken = userService.getUserToken(1L);
 
         // Assert the values
-        Assertions.assertEquals("key", oAuthToken.getValue());
-        Assertions.assertEquals("secret", oAuthToken.getSecret());
+        Assertions.assertEquals("key", oAuthToken.value());
+        Assertions.assertEquals("secret", oAuthToken.secret());
 
         // Verify that loadUserById method is called
         Mockito.verify(userRepository, Mockito.times(1)).findById(1L);
@@ -143,8 +163,8 @@ class UserServiceTest {
         OAuthToken oAuthToken = userService.getCurrentUserToken();
 
         // Assert the values
-        Assertions.assertEquals("mockKey", oAuthToken.getValue());
-        Assertions.assertEquals("mockSecret", oAuthToken.getSecret());
+        Assertions.assertEquals("mockKey", oAuthToken.value());
+        Assertions.assertEquals("mockSecret", oAuthToken.secret());
     }
 
     @Test

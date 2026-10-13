@@ -1,105 +1,107 @@
-import { useQuery } from "react-query";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { getOfferComments } from "../../apiFunctions/getOfferComments";
-import { Comment } from "../../models/Comment";
-import { useAuthContext } from "../../providers/AuthProvider";
-import "./style.scss";
-import { useEffect, useState } from "react";
 import { createOfferComment } from "../../apiFunctions/createOfferComment";
+import { Comment } from "../../models/Comment";
+import { useAuthContext } from "../../providers/authContext";
+import { queryKeys } from "../../config/queryKeys";
+import "./style.scss";
+
+const MAX_COMMENT_LENGTH = 255;
 
 interface Props {
   offerId: string;
 }
 
+function isForbidden(error: unknown) {
+  return isAxiosError(error) && error.response?.status === 403;
+}
+
 export function OfferComments({ offerId }: Props) {
   const { currentUser } = useAuthContext();
-  const { data: comments } = useQuery(["comments", offerId], () =>
-    getOfferComments(offerId)
-  );
-  const [newComment, setNewComment] = useState<string>("");
-  const onCommentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const commentValue = event.target.value;
-    setNewComment(commentValue);
+  const queryClient = useQueryClient();
+  const lastCommentRef = useRef<HTMLDivElement>(null);
+  const [newComment, setNewComment] = useState("");
 
-    const charCountSpan = document.getElementById("charCount");
-    if (charCountSpan) {
-      charCountSpan.innerText = commentValue.length.toString();
-    }
-  };
+  const { data: comments, error } = useQuery({
+    queryKey: queryKeys.comments(offerId),
+    queryFn: () => getOfferComments(offerId),
+    retry: (failureCount, err) => !isForbidden(err) && failureCount < 3,
+  });
 
-  const handleAddComment = () => {
-    const comment: Comment = {
-      username: currentUser!.username,
-      text: newComment,
-      offer_id: parseInt(offerId),
-      Date: new Date().toString(),
-    };
-    createOfferComment(comment)
-      .then(() => {
-        setNewComment("");
-        window.location.reload();
-      })
-      .catch((error) => {
-        alert(error);
-        window.location.reload();
+  const { mutate: addComment, isPending } = useMutation({
+    mutationFn: (text: string) =>
+      createOfferComment({ offer_id: Number(offerId), text }),
+    onSuccess: () => {
+      setNewComment("");
+      return queryClient.invalidateQueries({
+        queryKey: queryKeys.comments(offerId),
       });
-  };
+    },
+    onError: (err) => {
+      alert(
+        isForbidden(err)
+          ? "Nie możesz komentować tej oferty."
+          : "Nie udało się dodać komentarza."
+      );
+    },
+  });
 
   useEffect(() => {
-    if (!comments) return;
-    const lastComment = document.getElementById("lastComment");
-    if (lastComment) {
-      lastComment.scrollIntoView();
-    }
+    lastCommentRef.current?.scrollIntoView();
   }, [comments]);
+
+  if (isForbidden(error)) {
+    return (
+      <p className="noRequestsCom">
+        Czat jest dostępny tylko dla uczestników tej wymiany.
+      </p>
+    );
+  }
+
+  const trimmed = newComment.trim();
+
   return (
     <>
       <div className="comments">
-        {comments &&
-          comments.map((comment: Comment, index) => (
-            <>
-              {currentUser && currentUser.username === comment.username ? (
-                <div
-                  id={index == comments.length - 1 ? "lastComment" : ""}
-                  className="commentItem myComment"
-                >
-                  <div className="author">
-                    <h5>{comment.username}</h5>
-                  </div>
-                  <div className="content">
-                    <p>{comment.text}</p>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  id={index == comments.length - 1 ? "lastComment" : ""}
-                  className="commentItem opponentComment"
-                >
-                  <div className="author">
-                    <h5>{comment.username}</h5>
-                  </div>
-                  <div className="content">
-                    <p>{comment.text}</p>
-                  </div>
-                </div>
-              )}
-            </>
-          ))}
+        {comments?.map((comment: Comment, index) => (
+          <div
+            key={index}
+            ref={index === comments.length - 1 ? lastCommentRef : undefined}
+            className={`commentItem ${
+              currentUser?.username === comment.username
+                ? "myComment"
+                : "opponentComment"
+            }`}
+          >
+            <div className="author">
+              <h5>{comment.username}</h5>
+            </div>
+            <div className="content">
+              <p>{comment.text}</p>
+            </div>
+          </div>
+        ))}
       </div>
       <div className="createComment">
         <textarea
           placeholder="Dodaj komentarz"
-          onChange={onCommentChange}
+          value={newComment}
+          onChange={(event) => setNewComment(event.target.value)}
         ></textarea>
         <br />
         <p>
-          Ilość znaków: <span id="charCount">{newComment.length}</span>/255
+          Ilość znaków: <span>{newComment.length}</span>/{MAX_COMMENT_LENGTH}
         </p>
         <br />
         <button
           type="button"
           className="commentButton"
-          onClick={handleAddComment}
-          disabled={newComment.length > 255}
+          onClick={() => addComment(trimmed)}
+          disabled={
+            isPending || !trimmed || newComment.length > MAX_COMMENT_LENGTH
+          }
         >
           Dodaj komentarz
         </button>

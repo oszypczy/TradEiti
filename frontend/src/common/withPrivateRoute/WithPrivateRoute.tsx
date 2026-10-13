@@ -1,36 +1,31 @@
-import { useEffect } from "react";
+import { ComponentType, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
 const login = "/login?redirected=true";
 const usosConnect = "/usos-connect";
 
-// HOC component for rendering page only if user is connected to usos
-export const withPrivateRoute = (WrappedComponent: any) => {
-  const hocComponent = ({ ...props }) => {
+// HOC rendering the page only if the user is logged in and connected to USOS;
+// otherwise redirects to the login / USOS connection page.
+export function withPrivateRoute<P extends object>(
+  WrappedComponent: ComponentType<P>
+) {
+  return function PrivateRoute(props: P) {
     const navigate = useNavigate();
-    const { mounted, authenticated, loading, connectedToUsos } =
-      useAuthContext();
-    useEffect(() => {
-      if (mounted && authenticated === false) {
-        navigate(login);
-      } else if (mounted && connectedToUsos === false) {
-        navigate(usosConnect);
-      } else if (
-        mounted &&
-        authenticated === true &&
-        connectedToUsos === true
-      ) {
-        const path = window.location.pathname;
-        if (path.includes(usosConnect) || path.includes("/login")) {
-          navigate("/#/");
-        }
-      }
-    }, [authenticated, loading, connectedToUsos]);
-    return (
-      <>{!loading ? <WrappedComponent {...props} /> : <div>Loading...</div>}</>
-    );
-  };
+    const { authenticated, loading, connectedToUsos } = useAuthContext();
 
-  return hocComponent;
-};
+    useEffect(() => {
+      if (loading) return;
+      if (!authenticated) {
+        navigate(login);
+      } else if (!connectedToUsos) {
+        navigate(usosConnect);
+      }
+    }, [authenticated, loading, connectedToUsos, navigate]);
+
+    if (loading || !authenticated || !connectedToUsos) {
+      return <div>Loading...</div>;
+    }
+    return <WrappedComponent {...props} />;
+  };
+}

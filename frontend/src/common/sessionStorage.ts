@@ -6,11 +6,22 @@ export function getFromSessionStorage(key: string) {
   return sessionStorage.getItem(key);
 }
 
+// Parses a JSON value from session storage; returns undefined when the key is
+// missing or holds invalid JSON.
+export function getJsonFromSessionStorage<T>(key: string): T | undefined {
+  const value = getFromSessionStorage(key);
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 export function getMultipleValuesFromSessionStorage(keys: string[]) {
-  const values: any = {};
+  const values: Record<string, unknown> = {};
   keys.forEach((key) => {
-    const value = getFromSessionStorage(key);
-    values[key] = value ? JSON.parse(value) : "";
+    values[key] = getJsonFromSessionStorage(key) ?? "";
   });
   return values;
 }

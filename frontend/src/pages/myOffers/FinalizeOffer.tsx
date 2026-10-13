@@ -1,22 +1,41 @@
-import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import { MyOffersSteps } from "./MyOffersSteps";
+import { FormOffer } from "../../models/form/FormOffer";
+import { GroupDto } from "../../models/GroupDto";
 import "./FinalizeOffer.scss";
 
-export function FinalizeOffer() {
-  const { getValues } = useFormContext();
-  const [_, setSearchParams] = useSearchParams();
-  const values = getValues();
+function HourSummary({ label, hour }: { label: string; hour: GroupDto }) {
+  return (
+    <li>
+      <b>{label}</b>
+      <br />
+      {hour.weekday}
+      <br />
+      {hour.start_time} - {hour.end_time}
+      {hour.lecturers.map((lecturer) => (
+        <span key={lecturer}>
+          <br />
+          {lecturer}
+        </span>
+      ))}
+    </li>
+  );
+}
 
-  const handleBack = useCallback(() => {
+export function FinalizeOffer() {
+  const { getValues } = useFormContext<FormOffer>();
+  const [, setSearchParams] = useSearchParams();
+  const { course, group, myHour, opponentHour } = getValues();
+
+  const handleBack = () => {
     setSearchParams({
       page: MyOffersSteps.MY_OFFERS_ADD,
-      course_id: values.course.course_id,
-      class_type_name: values.group.class_type_name,
+      course: course ? course.course_id : "",
+      class_type_name: group ? group.class_type_name : "",
       stage: "2",
     });
-  }, [setSearchParams]);
+  };
 
   return (
     <>
@@ -27,44 +46,18 @@ export function FinalizeOffer() {
         <h3>Podsumowanie oferty</h3>
         <div></div>
       </div>
-      {values.course && values.myHour && values.opponentHour && (
+      {course && myHour && opponentHour && (
         <ul className="offerDataList">
           <li>
-            <b></b>ID przedmiotu: <b>{values.course.course_id}</b>
+            ID przedmiotu: <b>{course.course_id}</b>
           </li>
           <li>
-            Nazwa przedmiotu: <b>{values.course.course_name}</b>
+            Nazwa przedmiotu: <b>{course.course_name}</b>
           </li>
           <div className="exchangeHours">
-            <li>
-              <b>Oddajesz:</b> <br />
-              {values.myHour.weekday} <br />
-              {values.myHour.start_time} - {values.myHour.end_time}
-              {values.myHour.lecturers.map((lecturer: string) => {
-                return (
-                  <>
-                    <br />
-                    {lecturer}
-                  </>
-                );
-              })}
-            </li>
+            <HourSummary label="Oddajesz:" hour={myHour} />
             <div className="arrowAnim"></div>
-            <li>
-              <b>Otrzymasz:</b>
-              <br />
-              {values.opponentHour.weekday}
-              <br />
-              {values.opponentHour.start_time} - {values.opponentHour.end_time}
-              {values.opponentHour.lecturers.map((lecturer: string) => {
-                return (
-                  <>
-                    <br />
-                    {lecturer}
-                  </>
-                );
-              })}
-            </li>
+            <HourSummary label="Otrzymasz:" hour={opponentHour} />
           </div>
         </ul>
       )}

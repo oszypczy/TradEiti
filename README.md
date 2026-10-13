@@ -17,8 +17,8 @@ TradEITI aims to provide a **seamless and efficient platform** to empower studen
 
 | Component   | Technology       |
 |-------------|------------------|
-| **Backend** | Spring Framework |
-| **Frontend**| React            |
+| **Backend** | Spring Boot 4, Java 25 |
+| **Frontend**| React 19, Vite, TanStack Query |
 | **Database**| PostgreSQL       |
 
 ---
@@ -41,6 +41,33 @@ TradEITI will offer a range of features to make schedule exchanges easy and effi
 - 🔍 **Search Functionality:** Browse and filter offers with dynamic search options.  
 - 📋 **Offer Management:** Manage, edit, or delete your posted offers.  
 - 🤝 **Exchange Agreements:** Accept and finalize exchanges with fellow students directly through the platform.  
+
+---
+
+## 🚀 Running locally
+
+Requirements: Docker with Compose.
+
+```bash
+cp .env.example .env
+# set JWT_KEY in .env, e.g. to the output of: openssl rand -base64 32
+docker compose up --build
+```
+
+The app is available at http://localhost:8091 (API docs: http://localhost:8091/api/docs/ui).
+
+By default the backend runs with **`USOS_MOCK=true`**: instead of the real USOS it uses generated timetables, so no USOS
+API keys are needed and every account is "connected" right after registration. Each account lands in different groups,
+so you can register two accounts and exchange groups between them. To use the real USOS PW API, set `USOS_MOCK=false`
+together with `CONSUMER_KEY` / `CONSUMER_SECRET` (https://apps.usos.pw.edu.pl/developers/).
+
+### Development
+
+| | Command |
+|---|---|
+| Backend tests + static analysis (SpotBugs, FindSecBugs) | `cd backend && ./mvnw verify` (Java 25) |
+| Frontend dev server (proxies `/api` to `localhost:8090`) | `cd frontend && npm ci && npm run dev` |
+| Frontend lint / tests / build | `npm run lint`, `npm test`, `npm run build` |
 
 ---
 

@@ -1,5 +1,3 @@
-// import { getRequestToken } from "../../apiFunctions/login";
-import { withPrivateRoute } from "../../common/withPrivateRoute/WithPrivateRoute";
 import "./Home.scss";
 
 export const Home = () => {
@@ -75,5 +73,3 @@ export const Home = () => {
     </div>
   );
 };
-
-export const PrivateHome = withPrivateRoute(Home);

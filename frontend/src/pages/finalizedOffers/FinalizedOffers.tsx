@@ -11,25 +11,24 @@ function FinalizedOffers() {
   const offerId = searchParams.get("offer_id");
   const { finalizedOffers } = useFetchFinalizedOffers();
 
+  if (offerId) {
+    return (
+      <section>
+        <OfferComments offerId={offerId} />
+      </section>
+    );
+  }
+
   return (
     <section>
-      {!offerId ? (
-        <>
-          {finalizedOffers ? (
-            <>
-            {finalizedOffers.length > 0 ? (
-              finalizedOffers.map((offer) => <FinalizedOffer offer={offer} />)) :
-              <h6 className="noRequestsCom">
-              Brak ofert będących w trakcie procesu wymiany
-              </h6>
-            }
-            </>
-          ) : (
-            <Loader />
-          )}
-        </>
+      {!finalizedOffers ? (
+        <Loader />
+      ) : finalizedOffers.length > 0 ? (
+        finalizedOffers.map((offer) => (
+          <FinalizedOffer key={offer.offer_id} offer={offer} />
+        ))
       ) : (
-        <OfferComments offerId={offerId} />
+        <h6 className="noRequestsCom">Brak zakończonych wymian</h6>
       )}
     </section>
   );

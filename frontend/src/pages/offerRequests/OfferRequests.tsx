@@ -1,14 +1,15 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { withPrivateRoute } from "../../common/withPrivateRoute/WithPrivateRoute";
 import "./OfferRequests.scss";
 import { OfferRequestsList } from "./OfferRequestsList";
-import { OfferStatus } from "../../models/enums/OfferStatus";
-import { getOffers } from "../../apiFunctions/getOffers";
+import { getOfferRequests } from "../../apiFunctions/getOfferRequests";
+import { queryKeys } from "../../config/queryKeys";
 
 function OfferRequests() {
-  const { data: offerRequests } = useQuery(["offers", "requested"], () =>
-    getOffers(OfferStatus.REQUEST_SENT)
-  );
+  const { data: offerRequests } = useQuery({
+    queryKey: queryKeys.receivedOffers,
+    queryFn: getOfferRequests,
+  });
   return (
     <div>
       <OfferRequestsList offerRequests={offerRequests} />

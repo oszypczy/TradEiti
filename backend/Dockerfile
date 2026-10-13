@@ -1,12 +1,16 @@
-FROM maven:3-amazoncorretto-21 AS build
+FROM maven:3.9.16-eclipse-temurin-25 AS build
 WORKDIR /app
-COPY pom.xml .
+COPY pom.xml spotbugs-exclude.xml ./
+RUN mvn -B -q dependency:go-offline || true
 COPY src ./src
-RUN mvn clean package -DskipTests
-RUN mvn wrapper:wrapper
+RUN mvn -B -q package -DskipTests -Dspotbugs.skip=true
 
-FROM amazoncorretto:21
+FROM eclipse-temurin:25-jre-alpine
+RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
-COPY --from=build /app/target/TradEitiBackend.jar .
+COPY --from=build /app/target/TradEitiBackend.jar app.jar
+USER app
 EXPOSE 8090
-CMD ["java", "-jar", "TradEitiBackend.jar"]
+HEALTHCHECK --interval=10s --timeout=3s --start-period=40s --retries=5 \
+  CMD wget -qO- http://localhost:8090/actuator/health | grep -q '"UP"' || exit 1
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

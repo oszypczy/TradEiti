@@ -1,39 +1,26 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../../common/button/Button";
 import { ElementsContainer } from "../elementsContainer/ElementsContainer";
+import { SearchOfferOptions } from "../../models/SearchOfferOptions";
 import "./style.scss";
 
 interface Props {
-  inputsLabels: { label: string; input: string; values: string[] }[];
-  handleOnSubmit: (values: any) => void;
+  inputsLabels: { label: string; input: keyof SearchOfferOptions; values: string[] }[];
+  handleOnSubmit: (values: SearchOfferOptions) => void;
   handleOnReset: () => void;
+  handleOnSort: (newestFirst: boolean) => void;
 }
 
 export function SearchTable({
   inputsLabels,
   handleOnSubmit,
   handleOnReset,
+  handleOnSort,
 }: Props) {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset } = useForm<SearchOfferOptions>();
 
-  const onSubmit: SubmitHandler<any> = (values) => {
+  const onSubmit: SubmitHandler<SearchOfferOptions> = (values) => {
     return handleOnSubmit(values);
-  };
-
-  const sortNew = () => {
-    console.log("sortNew");
-    const offersList = document.querySelector(".offersList");
-    if (offersList) {
-      (offersList as HTMLElement).style.flexDirection = "column-reverse";
-    }
-  };
-
-  const sortOld = () => {
-    console.log("sortOld");
-    const offersList = document.querySelector(".offersList");
-    if (offersList) {
-      (offersList as HTMLElement).style.flexDirection = "column";
-    }
   };
 
   const handleReset = () => {
@@ -46,15 +33,15 @@ export function SearchTable({
       <ElementsContainer>
         <div className="searchTable-header bold">Filtry</div>
         <div className="searchTable-body">
-          {inputsLabels.map((value, index) => (
-            <div key={index}>
+          {inputsLabels.map((value) => (
+            <div key={value.input}>
               <label>
                 <b>{value.label}:</b>
               </label>
               <select {...register(value.input)}>
-                {value.values.map((value, index) => (
-                  <option key={index} value={value}>
-                    {value}
+                {value.values.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
                   </option>
                 ))}
               </select>
@@ -62,10 +49,18 @@ export function SearchTable({
           ))}
         </div>
         <div className="searchTable-footer">
-          <Button className="filterButton" onClick={sortNew}>
+          <Button
+            className="filterButton"
+            type="button"
+            onClick={() => handleOnSort(true)}
+          >
             Od najnowszych
           </Button>
-          <Button className="filterButton" onClick={sortOld}>
+          <Button
+            className="filterButton"
+            type="button"
+            onClick={() => handleOnSort(false)}
+          >
             Od najstarszych
           </Button>
           <Button className="filterButton" type="reset" onClick={handleReset}>

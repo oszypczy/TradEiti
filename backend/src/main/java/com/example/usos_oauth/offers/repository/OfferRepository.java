@@ -16,5 +16,10 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findAllByState(OfferState state);
 
     List<Offer> findAllByOwnerAndState(User currentUser, OfferState state);
-}
 
+    List<Offer> findAllByOwnerAndTermId(User owner, String termId);
+
+    List<Offer> findAllByReceiverAndTermId(User receiver, String termId);
+
+    List<Offer> findAllByStateAndTermId(OfferState state, String termId);
+}

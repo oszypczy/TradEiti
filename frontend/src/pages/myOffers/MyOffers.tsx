@@ -4,27 +4,31 @@ import "./MyOffers.scss";
 import { ShowOffers } from "./ShowOffers";
 import { MyOffersSteps } from "./MyOffersSteps";
 import { AddOffer } from "./AddOffer";
-import { EditOffer } from "./EditOffer";
+
+const stages = ["1. Wybór przedmiotu", "2. Wybór godziny", "3. Finalizacja"];
 
 const MyOffers = () => {
-  const [searchParams, _] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const page = searchParams.get("page");
   const stage = searchParams.get("stage");
+  if (page !== MyOffersSteps.MY_OFFERS_ADD) {
+    return <ShowOffers />;
+  }
   return (
     <>
-      {!page && <ShowOffers />}
-      {page && <>
       <div className="stageDiv">
-        <div className={`addStage ${stage == '1' ? 'currentStage' : ''}`}>1. Wybór przedmiotu</div>
-        <div className={`addStage ${stage == '2' ? 'currentStage' : ''}`}>2. Wybór godziny</div>
-        <div className={`addStage ${stage == '3' ? 'currentStage' : ''}`}>3. Finalizacja</div>
+        {stages.map((title, index) => (
+          <div
+            key={title}
+            className={`addStage ${stage === String(index + 1) ? "currentStage" : ""}`}
+          >
+            {title}
+          </div>
+        ))}
       </div>
       <hr />
       <br />
-      </>
-      }
-      {page == MyOffersSteps.MY_OFFERS_ADD && <AddOffer />}
-      {page == MyOffersSteps.MY_OFFERS_EDIT && <EditOffer />}
+      <AddOffer />
     </>
   );
 };

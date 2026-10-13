@@ -5,26 +5,32 @@ import { register } from "../../apiFunctions/register";
 import { UserCredentials } from "../../models/UserCredentials";
 import { saveToken } from "../../auth/JwtToken";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
+import { useAuthContext } from "../../providers/authContext";
 
 export const Register = () => {
+  const navigate = useNavigate();
+  const { refresh } = useAuthContext();
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleRegister = async (userCredentials: UserCredentials) => {
+  const handleRegister = (userCredentials: UserCredentials) => {
     register(userCredentials)
       .then((response) => {
-        console.log(response);
         if (response.token) {
           saveToken(response.token);
-          localStorage.setItem("username", userCredentials.username);
-          window.location.href = "/#/usos-connect";
-          window.location.reload();
+          refresh();
+          navigate("/usos-connect");
         }
       })
       .catch((err) => {
-        if (err.response && err.response.status === 503) {
+        const status = isAxiosError(err) ? err.response?.status : undefined;
+        if (status === 503) {
           setErrorMessage("Komputer Artura zasypał śnieg.");
-        } else if (err.response && err.response.status === 409) {
+        } else if (status === 409) {
           setErrorMessage("Nazwa użytkownika jest zajęta.");
+        } else if (status === 400) {
+          setErrorMessage("Niepoprawna nazwa użytkownika lub hasło.");
         } else {
           setErrorMessage("Błąd rejestracji.");
         }
@@ -38,10 +44,7 @@ export const Register = () => {
       <div className="formDiv">
         <h2>Rejestracja</h2>
         <AuthForm handleOnSubmit={handleRegister} errorMessage={errorMessage} />
-        <button
-          className="regButton"
-          onClick={() => (window.location.href = "/#/login")}
-        >
+        <button className="regButton" onClick={() => navigate("/login")}>
           Powrót
         </button>
       </div>

@@ -5,5 +5,5 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @NoArgsConstructor
-@ResponseStatus(HttpStatus.PROXY_AUTHENTICATION_REQUIRED)
+@ResponseStatus(HttpStatus.PRECONDITION_REQUIRED)
 public class UsosAccountNotConnectedException extends RuntimeException {}

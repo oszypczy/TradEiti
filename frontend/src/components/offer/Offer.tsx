@@ -1,41 +1,62 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { requestOffer } from "../../apiFunctions/requestOffer";
 import { Button } from "../../common/button/Button";
 import { OfferDto } from "../../models/Offer";
+import { GroupDto } from "../../models/GroupDto";
+import { queryKeys } from "../../config/queryKeys";
 import "./style.scss";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
 interface Props {
   offer: OfferDto;
 }
 
+function GroupDetails({ group }: { group: GroupDto }) {
+  return (
+    <>
+      <p>
+        {group.weekday}, {group.start_time}-{group.end_time},{" "}
+        {group.class_type_name}, {group.group_number}
+      </p>
+      <p>
+        Prowadzący: <b>{group.lecturers.join(", ")}</b>
+      </p>
+    </>
+  );
+}
+
 export function OfferComponent({ offer }: Props) {
-  const navigate = useNavigate();
   const { currentUser } = useAuthContext();
-
+  const queryClient = useQueryClient();
   const location = useLocation();
+  const isOwnOffer = offer.owner_username === currentUser?.username;
 
-  const handleAcceptOffer = () => {
-    requestOffer(offer.offer_id)
-      .then((res) => {
-        console.log(res);
-        alert("Prośba o akceptację oferty wysłana");
-        navigate(0);
-      })
-      .catch(() => {
+  const { mutate: sendRequest, isPending } = useMutation({
+    mutationFn: () => requestOffer(offer.offer_id),
+    onSuccess: () => alert("Prośba o akceptację oferty wysłana"),
+    onError: (error) => {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 403) {
+        alert("Nie jesteś w grupie, której szuka wystawiający.");
+      } else if (status === 409) {
+        alert("Oferta nie jest już dostępna.");
+      } else {
         alert("Coś poszło nie tak");
-        navigate(0);
-      });
-  };
+      }
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.offers }),
+  });
 
   return (
     <div
       className="offer"
       style={{
-        backgroundColor:
-          offer.owner_username === currentUser?.username
-            ? `var(--my-course-color)`
-            : `var(--course-color)`,
+        backgroundColor: isOwnOffer
+          ? `var(--my-course-color)`
+          : `var(--course-color)`,
       }}
     >
       <div className="offer-left">
@@ -51,51 +72,23 @@ export function OfferComponent({ offer }: Props) {
           Przedmiot: <b>{offer.my_course.course_name}</b>
         </p>
         <hr />
-        <p><b>Oddaję:</b></p>
         <p>
-
-            {offer.my_course.groups[0].weekday},{" "}
-            {offer.my_course.groups[0].start_time}-
-            {offer.my_course.groups[0].end_time},{" "}
-            {offer.my_course.groups[0].class_type_name}, {" "}
-            {offer.my_course.groups[0].group_number}
-
+          <b>Oddaję:</b>
         </p>
-        <p>
-          Prowadzący:{" "}
-          <b>
-            {offer.my_course.groups[0].lecturers.map((lecturer, index, array) => (
-              <span key={index}>{lecturer}
-              {index < array.length - 1 && ', '}
-              </span>
-            ))}
-          </b>
-        </p>
+        <GroupDetails group={offer.my_course.groups[0]} />
         <hr />
-        <p><b>Chcę:</b></p>
         <p>
-
-            {offer.wanted_course.groups[0].weekday},{" "}
-            {offer.wanted_course.groups[0].start_time}-
-            {offer.wanted_course.groups[0].end_time},{" "}
-            {offer.wanted_course.groups[0].class_type_name}, {" "}
-            {offer.wanted_course.groups[0].group_number}
-
+          <b>Chcę:</b>
         </p>
-        <p>
-          Prowadzący:{" "}
-          <b>
-            {offer.wanted_course.groups[0].lecturers.map((lecturer, index, array) => (
-              <span key={index}>{lecturer}
-              {index < array.length - 1 && ', '}
-              </span>
-            ))}
-          </b>
-        </p>
+        <GroupDetails group={offer.wanted_course.groups[0]} />
       </div>
       <div className="offer-right">
-        {offer.owner_username !== currentUser?.username && (location.pathname === '/fittingOffers')  && (
-          <Button className="acceptButton" onClick={handleAcceptOffer}>
+        {!isOwnOffer && location.pathname === "/fittingOffers" && (
+          <Button
+            className="acceptButton"
+            onClick={() => sendRequest()}
+            disabled={isPending}
+          >
             Akceptuj
           </Button>
         )}

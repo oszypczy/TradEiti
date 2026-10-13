@@ -1,6 +1,7 @@
 package com.example.usos_oauth.security.service;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -34,8 +35,7 @@ class JwtServiceTest {
         String token = jwtService.generateToken(extraClaims, userDetails);
 
         // Then
-        Assertions.assertNotNull(token);
-        // Add more assertions based on your requirements, e.g., check if the custom claim is present in the token
+        Assertions.assertEquals("customValue", jwtService.extractClaim(token, claims -> claims.get("customClaim")));
 
     }
 
@@ -70,12 +70,23 @@ class JwtServiceTest {
         UserDetails userDetails = User.withUsername("testUser").password("password").roles("USER").build();
         String expiredToken = jwtService.generateTokenWithExpiration(userDetails, -1000L);
 
-        // When
-        try {
-            jwtService.isTokenValid(expiredToken, userDetails);
-        } catch (ExpiredJwtException e) {
-            // Then
-            Assertions.assertEquals("JWT expired", e.getMessage().substring(0, 11));
-        }
+        // When / Then
+        Assertions.assertThrows(ExpiredJwtException.class, () -> jwtService.isTokenValid(expiredToken, userDetails));
+    }
+
+    @Test
+    void isTokenValid_DifferentUser_ReturnsFalse() {
+        String token = jwtService.generateToken(User.withUsername("testUser").password("password").roles("USER").build());
+        UserDetails other = User.withUsername("otherUser").password("password").roles("USER").build();
+
+        Assertions.assertFalse(jwtService.isTokenValid(token, other));
+    }
+
+    @Test
+    void extractUsername_TokenSignedWithAnotherKey_Throws() {
+        JwtService otherService = new JwtService("b3RoZXIta2V5LXRoYXQtaXMtbG9uZy1lbm91Z2gtZm9yLWhzMjU2LXNpZ25hdHVyZXM=");
+        String foreignToken = otherService.generateToken(User.withUsername("testUser").password("p").roles("USER").build());
+
+        Assertions.assertThrows(SignatureException.class, () -> jwtService.extractUsername(foreignToken));
     }
 }

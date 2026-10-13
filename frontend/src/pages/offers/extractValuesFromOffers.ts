@@ -1,8 +1,13 @@
 import { OfferDto } from "../../models/Offer";
 
-export function extractSimpleValuesFromOffers(key: string, offers: OfferDto[]) {
+// Each list starts with "" which stands for "no filter" in the select inputs.
+
+export function extractSimpleValuesFromOffers(
+  key: "course_id" | "course_name",
+  offers: OfferDto[]
+) {
   const values = [""];
-  offers.forEach((offer: any) => values.push(offer.my_course[key]));
+  offers.forEach((offer) => values.push(offer.my_course[key]));
   return [...new Set(values)].sort();
 }
 
@@ -16,14 +21,13 @@ export function extractLecturersFromOffers(offers: OfferDto[]) {
   return [...new Set(values)].sort();
 }
 
+export function formatOfferDate(offer: OfferDto) {
+  const group = offer.my_course.groups[0];
+  return `${group.weekday}, ${group.start_time}-${group.end_time}`;
+}
+
 export function extractDatesFromOffers(offers: OfferDto[]) {
   const values: string[] = [""];
-  offers.forEach((offer) => {
-    const date = ""
-      .concat(offer.my_course.groups[0].weekday, ", ")
-      .concat(offer.my_course.groups[0].start_time, "-")
-      .concat(offer.my_course.groups[0].end_time);
-    values.push(date);
-  });
+  offers.forEach((offer) => values.push(formatOfferDate(offer)));
   return [...new Set(values)].sort();
 }

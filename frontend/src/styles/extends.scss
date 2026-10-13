@@ -1,5 +1,4 @@
-@import './mixins.scss';
-
+@use "./mixins.scss" as *;
 .longDescription {
   width: 75%;
   @include tablet {

@@ -1,31 +1,31 @@
 package com.example.usos_oauth.usos.service.usos.utils;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-public class UsosDateTimeParser {
+public final class UsosDateTimeParser {
 
-    static Map<String, String> weekdayMapping = Map.of(
-            "MONDAY", "Poniedziałek",
-            "TUESDAY", "Wtorek",
-            "WEDNESDAY", "Środa",
-            "THURSDAY", "Czwartek",
-            "FRIDAY", "Piątek",
-            "SATURDAY", "Sobota",
-            "SUNDAY", "Niedziela"
+    private static final Map<DayOfWeek, String> WEEKDAYS = Map.of(
+            DayOfWeek.MONDAY, "Poniedziałek",
+            DayOfWeek.TUESDAY, "Wtorek",
+            DayOfWeek.WEDNESDAY, "Środa",
+            DayOfWeek.THURSDAY, "Czwartek",
+            DayOfWeek.FRIDAY, "Piątek",
+            DayOfWeek.SATURDAY, "Sobota",
+            DayOfWeek.SUNDAY, "Niedziela"
     );
-    static DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    static DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private UsosDateTimeParser() {}
 
     public static String parseHour(String time) {
-        LocalDateTime formatedTime = LocalDateTime.parse(time, inputFormatter);
-        return formatedTime.format(outputFormatter);
+        return LocalDateTime.parse(time, INPUT_FORMAT).format(OUTPUT_FORMAT);
     }
 
     public static String parseWeekday(String time) {
-        LocalDateTime formatedTime = LocalDateTime.parse(time, inputFormatter);
-        return weekdayMapping.get(formatedTime.getDayOfWeek().toString());
-
+        return WEEKDAYS.get(LocalDateTime.parse(time, INPUT_FORMAT).getDayOfWeek());
     }
 }

@@ -1,13 +1,17 @@
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MyOffersList } from "../../components/offer/MyOffersList";
 import { MyOffersSteps } from "./MyOffersSteps";
-import { useQuery } from "react-query";
 import { getUserOffers } from "../../apiFunctions/getUserOffers";
 import { OfferStatus } from "../../models/enums/OfferStatus";
+import { queryKeys } from "../../config/queryKeys";
 
 export function ShowOffers() {
-  const [_, setSearchParams] = useSearchParams();
-  const { data: offers } = useQuery("userOffers", getUserOffers);
+  const [, setSearchParams] = useSearchParams();
+  const { data: offers } = useQuery({
+    queryKey: queryKeys.userOffers,
+    queryFn: getUserOffers,
+  });
 
   const handleAddOffer = () => {
     setSearchParams({

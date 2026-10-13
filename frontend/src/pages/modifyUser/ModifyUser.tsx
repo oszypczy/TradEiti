@@ -7,7 +7,7 @@ import {
 } from "../../apiFunctions/changeUserData";
 import { saveToken } from "../../auth/JwtToken";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
 const avatars = [
   { name: "man", path: "/avatars/man.png" },
@@ -17,50 +17,37 @@ const avatars = [
 
 const ModifyUser = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuthContext();
-  const [selectedAvatar, setSelectedAvatar] = useState(currentUser?.avatar);
-  const [userLogin, setUserLogin] = useState(
-    localStorage.getItem("username") || ""
+  const { currentUser, refresh } = useAuthContext();
+  const [selectedAvatar, setSelectedAvatar] = useState(
+    currentUser?.avatar ?? "helicopter"
   );
+  const [newLogin, setNewLogin] = useState("");
 
-  const checkRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedAvatar(e.target.value);
-  };
-
-  const selectAvatar = (avatarName: string) => {
-    setSelectedAvatar(avatarName);
-  };
-
-  const handleChange = () => {
-    if (!userLogin) return;
-    changeUserAvatar(selectedAvatar ? selectedAvatar : "helicopter")
-      .then(() => {
-        if (userLogin != localStorage.getItem("username")) {
-        changeUserLogin(userLogin)
-          .then((response) => {
-            saveToken(response.token);
-            localStorage.setItem("username", userLogin);
-            alert("Dane zmienione.");
-            navigate("/userPage");
-            navigate(0);
-          })
-          .catch((error) => {
-            console.log(error);
-            alert("Wystąpił błąd. Nazwa użytkownika zajęta.");
-            navigate("/userPage");
-            navigate(0);
-          });
-        } else {
-          navigate("/userPage");
-          navigate(0);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        alert("Wystąpił błąd, dane nie zostały zmienione");
-        navigate("/userPage");
-      });
-
+  const handleChange = async () => {
+    try {
+      if (selectedAvatar !== currentUser?.avatar) {
+        await changeUserAvatar(selectedAvatar);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Wystąpił błąd, dane nie zostały zmienione");
+      return;
+    }
+    const login = newLogin.trim();
+    if (login && login !== currentUser?.username) {
+      try {
+        const response = await changeUserLogin(login);
+        saveToken(response.token);
+      } catch (error) {
+        console.error(error);
+        alert("Wystąpił błąd. Nazwa użytkownika zajęta.");
+        refresh();
+        return;
+      }
+    }
+    alert("Dane zmienione.");
+    refresh();
+    navigate("/userPage");
   };
 
   return (
@@ -74,12 +61,12 @@ const ModifyUser = () => {
                 name="avatar"
                 value={avatar.name}
                 checked={selectedAvatar === avatar.name}
-                onChange={checkRadio}
+                onChange={(e) => setSelectedAvatar(e.target.value)}
               />
               <img
                 src={avatar.path}
                 alt="Avatar"
-                onClick={() => selectAvatar(avatar.name)}
+                onClick={() => setSelectedAvatar(avatar.name)}
               />
             </div>
           ))}
@@ -90,8 +77,9 @@ const ModifyUser = () => {
             type="text"
             name="userLogin"
             id="userLogin"
-            placeholder={"Old login: " + userLogin}
-            onChange={(e) => setUserLogin(e.target.value)}
+            placeholder={"Obecna nazwa: " + (currentUser?.username ?? "")}
+            value={newLogin}
+            onChange={(e) => setNewLogin(e.target.value)}
           />
           <br />
         </div>

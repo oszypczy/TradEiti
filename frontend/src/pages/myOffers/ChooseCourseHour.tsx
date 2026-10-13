@@ -1,57 +1,56 @@
 import { useSearchParams } from "react-router-dom";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useFormContext } from "react-hook-form";
 import { MyOffersSteps } from "./MyOffersSteps";
 import "./ChooseCourseHour.scss";
 import { CourseHours } from "../../components/hours/CourseHours";
-import { useFormContext } from "react-hook-form";
 import {
-  getFromSessionStorage,
+  getJsonFromSessionStorage,
   saveInSessionStorage,
 } from "../../common/sessionStorage";
-import { useQuery } from "react-query";
 import { getAllCourses } from "../../apiFunctions/getAllCourses";
 import { getCourseDateFromCourses } from "./GetCourseDateFromCourses";
 import { getCourseGroups } from "../../apiFunctions/getCourseGroups";
 import { Loader } from "../../common/loader/Loader";
 import { GroupDto } from "../../models/GroupDto";
+import { CourseDto } from "../../models/Course";
+import { queryKeys } from "../../config/queryKeys";
 
 export function ChooseCourseHour() {
-  const { setValue, watch } = useFormContext();
+  const { setValue, watch, getValues } = useFormContext();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: courses } = useQuery("courses", getAllCourses);
+  const { data: courses } = useQuery({
+    queryKey: queryKeys.courses,
+    queryFn: getAllCourses,
+  });
   const courseId =
     searchParams.get("course") ??
-    JSON.parse(getFromSessionStorage("course") ?? "").course_id ??
+    getJsonFromSessionStorage<CourseDto>("course")?.course_id ??
     "";
   const courseClassType =
     searchParams.get("class_type_name") ??
-    getFromSessionStorage("class_type_name") ??
+    getJsonFromSessionStorage<GroupDto>("group")?.class_type_name ??
     "";
-  const { data: allCourseGroups } = useQuery(
-    ["allCourseHours", courseId, courseClassType],
-    () => getCourseGroups(courseId)
+  const { data: allCourseGroups } = useQuery({
+    queryKey: queryKeys.courseGroups(courseId),
+    queryFn: () => getCourseGroups(courseId),
+    enabled: courseId !== "",
+  });
+  const myCourseHour = useMemo(
+    () => getCourseDateFromCourses(courses, courseId, courseClassType),
+    [courses, courseId, courseClassType]
   );
-  const myCourseHour = getCourseDateFromCourses(
-    courses,
-    courseId,
-    courseClassType
+  const allClassHours = useMemo(
+    () =>
+      allCourseGroups?.filter(
+        (group) => group.class_type_name === courseClassType
+      ),
+    [allCourseGroups, courseClassType]
   );
-  const allClassHours = allCourseGroups?.data
-    .filter((group) => group.class_type_name === courseClassType)
-    .map((group) => {
-      const hour: GroupDto = {
-        weekday: group.weekday,
-        start_time: group.start_time,
-        end_time: group.end_time,
-        lecturers: group.lecturers,
-        class_type_name: group.class_type_name,
-        group_number: group.group_number,
-      };
-      return hour;
-    });
 
-  const myHour: GroupDto = watch("myHour");
-  const opponentHour: GroupDto = watch("opponentHour");
+  const myHour: GroupDto | undefined = watch("myHour") || undefined;
+  const opponentHour: GroupDto | undefined = watch("opponentHour") || undefined;
 
   const handleBack = useCallback(() => {
     setSearchParams({
@@ -61,26 +60,26 @@ export function ChooseCourseHour() {
   }, [setSearchParams]);
 
   const handleChoosingHour = useCallback(
-    (date: GroupDto | null, hourType: string) => {
+    (date: GroupDto, hourType: string) => {
       setValue(hourType, date);
       saveInSessionStorage(hourType, JSON.stringify(date));
     },
-    [setValue, saveInSessionStorage]
+    [setValue]
   );
 
   const handleSaving = useCallback(() => {
     setSearchParams({
       page: MyOffersSteps.MY_OFFERS_ADD,
-      course_id: courseId,
+      course: courseId,
       class_type_name: courseClassType,
       stage: "3",
     });
-  }, [setSearchParams]);
+  }, [setSearchParams, courseId, courseClassType]);
 
   useEffect(() => {
-    if (watch("myHour") || !myCourseHour) return;
-    setValue("myHour", myCourseHour[0]);
-  }, [myCourseHour]);
+    if (getValues("myHour") || !myCourseHour) return;
+    handleChoosingHour(myCourseHour[0], "myHour");
+  }, [myCourseHour, getValues, handleChoosingHour]);
 
   return (
     <>
@@ -99,6 +98,7 @@ export function ChooseCourseHour() {
               <div className="hours">
                 <CourseHours
                   dates={myCourseHour}
+                  selected={myHour}
                   handleChooseDate={handleChoosingHour}
                   hourType="myHour"
                 />
@@ -109,6 +109,8 @@ export function ChooseCourseHour() {
               <div className="hours">
                 <CourseHours
                   dates={allClassHours}
+                  selected={opponentHour}
+                  excluded={myHour}
                   handleChooseDate={handleChoosingHour}
                   hourType="opponentHour"
                 />

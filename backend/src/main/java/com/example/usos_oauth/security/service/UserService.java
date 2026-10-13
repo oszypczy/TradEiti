@@ -6,29 +6,27 @@ import com.example.usos_oauth.security.model.Avatar;
 import com.example.usos_oauth.security.model.User;
 import com.example.usos_oauth.security.model.UsosAuth;
 import com.example.usos_oauth.security.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import com.example.usos_oauth.usos.oauth.OAuthToken;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.social.oauth1.OAuthToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class responsible for handling user-related operations and interactions with the UserRepository.
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
     /**
      * JPA repository for managing User entities.
      */
-    UserRepository userRepository;
-
-    /**
-     * Service for handling JWT-related operations.
-     */
-    JwtService jwtService;
+    private final UserRepository userRepository;
 
     /**
      * Retrieves the currently authenticated user from the security context.
@@ -36,7 +34,11 @@ public class UserService implements UserDetailsService {
      * @return The currently authenticated User.
      */
     public User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new AuthenticationCredentialsNotFoundException("No authenticated user");
+        }
+        return user;
     }
 
     /**
@@ -72,7 +74,11 @@ public class UserService implements UserDetailsService {
      */
     public OAuthToken getUserToken(Long userId) {
         User user = loadUserById(userId);
-        return new OAuthToken(user.getUsos_auth().getOauthKey(), user.getUsos_auth().getOauthSecret());
+        UsosAuth usosAuth = user.getUsos_auth();
+        if (usosAuth == null) {
+            return new OAuthToken("", "");
+        }
+        return new OAuthToken(usosAuth.getOauthKey(), usosAuth.getOauthSecret());
     }
 
     /**
@@ -91,12 +97,16 @@ public class UserService implements UserDetailsService {
      * @param userId The unique identifier of the user.
      * @param token  The new OAuthToken to be associated with the user.
      */
+    @Transactional
     public void updateUserToken(Long userId, OAuthToken token) {
         User user = userRepository.getReferenceById(userId);
-        UsosAuth usosAuth = new UsosAuth();
-        usosAuth.setOauthKey(token.getValue());
-        usosAuth.setOauthSecret(token.getSecret());
-        user.setUsos_auth(usosAuth);
+        UsosAuth usosAuth = user.getUsos_auth();
+        if (usosAuth == null) {
+            usosAuth = new UsosAuth();
+            user.setUsos_auth(usosAuth);
+        }
+        usosAuth.setOauthKey(token.value());
+        usosAuth.setOauthSecret(token.secret());
         userRepository.save(user);
     }
 
@@ -116,6 +126,7 @@ public class UserService implements UserDetailsService {
      * @param userId   The unique identifier of the user.
      * @param username The new username to be associated with the user.
      */
+    @Transactional
     public void updateUserUsername(Long userId, String username) {
         User user = userRepository.getReferenceById(userId);
         user.setUsername(username);
@@ -142,6 +153,7 @@ public class UserService implements UserDetailsService {
      * @param newAvatar The new avatar to be set for the user.
      * @throws UnknownAvatarException If the provided avatar is not recognized.
      */
+    @Transactional
     public void changeAvatar(String newAvatar) {
         User user = getCurrentUser();
         if (checkAvatar(newAvatar)) {

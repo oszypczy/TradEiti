@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function FinalizedOffer({ offer }: Props) {
-  const [_, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   const onOfferClick = () => {
     setSearchParams({

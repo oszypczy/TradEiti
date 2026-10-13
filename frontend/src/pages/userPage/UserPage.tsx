@@ -1,18 +1,23 @@
 import { withPrivateRoute } from "../../common/withPrivateRoute/WithPrivateRoute";
 import { useNavigate } from "react-router-dom";
 import "./UserPage.scss";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
 const UserPage = () => {
   const navigate = useNavigate();
-  const userName = localStorage.getItem("username");
   const { currentUser } = useAuthContext();
   return (
     <>
       <div className="userContainer">
         <div className="avatar">
-          <img src={currentUser?.avatar ?
-            `avatars/${currentUser.avatar}.png` : "/avatars/man.png"} alt="Avatar" />
+          <img
+            src={
+              currentUser?.avatar
+                ? `/avatars/${currentUser.avatar}.png`
+                : "/avatars/man.png"
+            }
+            alt="Avatar"
+          />
         </div>
         <div className="userData">
           <b>Nazwa użytkownika:</b>{" "}
@@ -20,16 +25,13 @@ const UserPage = () => {
             type="text"
             name="userLogin"
             id="userLogin"
-            placeholder={userName ? userName : "Connection error"}
+            placeholder={currentUser?.username ?? "Connection error"}
             disabled
           />
           <br />
         </div>
       </div>
-      <button
-        className="changeButton"
-        onClick={() => navigate("../modifyUser")}
-      >
+      <button className="changeButton" onClick={() => navigate("/modifyUser")}>
         Zmień dane
       </button>
     </>

@@ -1,13 +1,13 @@
 import { ReactElement } from "react";
-import { useAuthContext } from "../../providers/AuthProvider";
+import { useAuthContext } from "../../providers/authContext";
 
-// HOC component for rendering components only if user is connected to usos
-export default function Authorized(props: authorizedProps) {
-  const { connectedToUsos } = useAuthContext();
-  return <>{connectedToUsos ? props.isAuthorized : props.notAuthorized}</>;
-}
-interface authorizedProps {
+interface AuthorizedProps {
   isAuthorized: ReactElement;
   notAuthorized?: ReactElement;
-  role?: string;
+}
+
+// Renders `isAuthorized` only if user is connected to usos
+export default function Authorized(props: AuthorizedProps) {
+  const { connectedToUsos } = useAuthContext();
+  return <>{connectedToUsos ? props.isAuthorized : props.notAuthorized}</>;
 }

@@ -1,26 +1,34 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { connectUsos } from "../../apiFunctions/connectUsos";
-import { removeJwtToken } from "../../auth/JwtToken";
+import { useAuthContext } from "../../providers/authContext";
 import "./UsosConnect.scss";
 
 export function UsosConnect() {
   const navigate = useNavigate();
-  const getToken = async () => {
+  const { connectedToUsos, logout } = useAuthContext();
+
+  if (connectedToUsos) {
+    return <Navigate to="/" replace />;
+  }
+
+  const getToken = () => {
     connectUsos()
-      .then((response) => {
-        window.location.href = response;
+      .then((authorizationUrl) => {
+        window.location.href = authorizationUrl;
       })
       .catch(() => {
-        removeJwtToken();
+        logout();
         navigate("/login?redirected=true");
       });
   };
   return (
     <div>
       <h1>Połącz z USOS</h1>
-      <img src="/plug.png" alt="plug" width="200px"/>
+      <img src="/plug.png" alt="plug" width="200px" />
       <br />
-      <button className = "usosButton" onClick={getToken}>Połącz konto</button>
+      <button className="usosButton" onClick={getToken}>
+        Połącz konto
+      </button>
     </div>
   );
 }
